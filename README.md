@@ -2,7 +2,7 @@
 
 1. Install the tool itself:
 ```
-python -m pip install -e .
+poetry install
 ```
 2. Install the necessary bash tools:
 ```
@@ -11,5 +11,5 @@ sudo apt install ffmpeg python3-mutagen
 
 # Usage
 ```
-python -m cd_ripper -h
+poetry run python -m cd_ripper -h
 ```
