@@ -5,6 +5,7 @@ err=$(poetry --version 2>&1 >/dev/null)
 if [ "$err" != "" ]; then
 	echo "Poetry not installed: Installing"
 	curl -sSL https://install.python-poetry.org | python3 -
+	echo "PATH=\$PATH:/home/$USER/.local/bin" >> ~/.bashrc
 fi
 
 # Install bash dependencies
