@@ -1,12 +1,8 @@
 # Installation
 
-1. Install the tool itself:
+1. Run the installation script.
 ```
-poetry install
-```
-2. Install the necessary bash tools:
-```
-sudo apt install ffmpeg python3-mutagen
+./install.sh
 ```
 
 # Usage
