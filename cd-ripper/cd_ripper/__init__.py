@@ -1,4 +1,5 @@
 import json
+import logging
 import subprocess
 import pathlib
 from typing import Any, Dict, List, Optional, Tuple
@@ -52,6 +53,15 @@ def wav_to_mp3(wav_file: pathlib.Path, keep_wav: bool = True, output_dir: Option
             raise FileNotFoundError(output_dir)
 
     mp3_file = output_dir / (wav_file.stem + ".mp3")
+    if mp3_file.is_file():
+        while True:
+            ans = input(f"{mp3_file} exists. Overwrite? [y/N]: ")
+            if ans == 'y':
+                break
+            elif ans == 'N':
+                return mp3_file
+            else:
+                print("Error: input 'y' or 'N'")
 
     ffmpeg_command = f"ffmpeg -hide_banner -loglevel error "\
                    + f"-i \"{wav_file}\" -acodec mp3 \"{mp3_file}\""
