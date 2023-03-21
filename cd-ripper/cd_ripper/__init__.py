@@ -7,19 +7,51 @@ import plac
 import tqdm
 
 
+def rip_cd_to_folder(cd_directory: pathlib.Path) -> None:
+    """Rip all tracks on the current CD into the provided folder."""
+    if not cd_directory.is_dir():
+        raise FileNotFoundError(cd_directory)
+    pwd = os.getenv("PWD")
+    # -X: abort on skip
+    # -B: batch
+    cdparanoia_command = (
+        f"cd {cd_directory.resolve()};"
+        "cdparanoia -XB; "
+        "cd {pwd}")
+    subprocess.run(cdparanoia_command, shell=True, check=True)
+
+
 def load_album_config_file(json_file: pathlib.Path) -> Dict[str, Any]:
     """Unpack album configuration information from .json file."""
     with json_file.open('r') as io_obj:
         return json.load(io_obj)
 
 
-def wav_to_mp3(wav_file: pathlib.Path, keep_wav: bool = True) -> pathlib.Path:
-    """Convert .wav file to .mp3 file using ffmpeg."""
+def wav_to_mp3(wav_file: pathlib.Path, keep_wav: bool = True, output_dir: Optional[pathlib.Path] = None) -> pathlib.Path:
+    """Convert .wav file to .mp3 file using ffmpeg.
+
+    Args:
+        wav_file (filepath): .wav file to convert
+        keep_wav (optional, bool): if False, deletes .wav after making .mp3,
+            Defaults to True
+        output_dir (optional, filepath): location to create .mp3,
+            Defaults to .wav location
+
+    Returns:
+        path to created .mp3 file
+    """
+    # Check and resolve .wav file
     wav_file = wav_file.resolve()
     if not wav_file.is_file():
         raise FileNotFoundError(wav_file)
 
-    mp3_file = wav_file.parent / (wav_file.stem + ".mp3")
+    # Check and resolve output directory
+    if output_dir is None:
+        output_dir = wav_file.parent
+    if not output_dir.is_dir():
+            raise FileNotFoundError(output_dir)
+
+    mp3_file = output_dir / (wav_file.stem + ".mp3")
 
     ffmpeg_command = f"ffmpeg -hide_banner -loglevel error "\
                    + f"-i \"{wav_file}\" -acodec mp3 \"{mp3_file}\""
@@ -110,10 +142,16 @@ def show_metadata(mp3_file: pathlib.Path) -> None:
         "option",
         "cf",
         type=pathlib.Path),
+    output_directory=plac.Annotation(
+        "directory to which to write .mp3 files - if not given, writes in album_directory",
+        "option",
+        "od",
+        type=pathlib.Path),
 )
 def populate_album_metadata(
         album_directory: pathlib.Path,
-        config_json: Optional[pathlib.Path] = None) -> None:
+        config_json: Optional[pathlib.Path] = None,
+        output_directory: Optional[pathlib.Path] = None) -> None:
     """Given folder of music and configuration data, add metadata to album music.
 
     Performs the following steps:
@@ -132,7 +170,7 @@ def populate_album_metadata(
                            if f.suffix == '.json'][0]
         except IndexError:
             raise FileNotFoundError(
-                "No .json config file found in album, and not provided at CLI")
+                f"No .json config file found in {album_directory}, and not provided at CLI")
 
     elif not config_json.is_file():
         raise FileNotFoundError(config_json.resolve())
@@ -147,7 +185,7 @@ def populate_album_metadata(
     files = list(album_directory.iterdir())
     for wav_file in tqdm.tqdm(files):
         if wav_file.suffix == '.wav':
-            wav_to_mp3(wav_file, keep_wav=False)
+            wav_to_mp3(wav_file, keep_wav=True, output_dir=output_directory)
 
     print("(3) Attempting to match metadata song titles with files")
     mapping = match_titles_to_files(album_metadata['songs'], album_directory)
