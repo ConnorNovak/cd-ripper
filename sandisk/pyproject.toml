@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "sandisk"
+version = "0.1.0"
+description = "Load albums, songs, and playlists onto and off of Sandisk MP3 player."
+authors = ["Connor Novak <connorrnovak@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+plac = "^1.3.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
