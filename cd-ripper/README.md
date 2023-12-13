@@ -28,7 +28,7 @@ mkdir -p ALBUM_NAME/raw
 
 # Rip .wav files from CD
 cd ALBUM_NAME/raw
-cdparanoia -XD && rename 's/\.cdda//' *.wav
+cdparanoia -B && rename 's/\.cdda//' *.wav
 
 # Convert .wav to mp3
 cd ~/Workspace/mp3-player-tooling/cd-ripper

@@ -1,3 +1,4 @@
+"""cd_ripper module for converting CDs into .mp3 files."""
 import json
 import logging
 import subprocess
@@ -7,19 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import plac
 import tqdm
 
-
-def rip_cd_to_folder(cd_directory: pathlib.Path) -> None:
-    """Rip all tracks on the current CD into the provided folder."""
-    if not cd_directory.is_dir():
-        raise FileNotFoundError(cd_directory)
-    pwd = os.getenv("PWD")
-    # -X: abort on skip
-    # -B: batch
-    cdparanoia_command = (
-        f"cd {cd_directory.resolve()};"
-        "cdparanoia -XB; "
-        "cd {pwd}")
-    subprocess.run(cdparanoia_command, shell=True, check=True)
+_logger = logging.getLogger("cd_ripper")
 
 
 def load_album_config_file(json_file: pathlib.Path) -> Dict[str, Any]:
@@ -100,6 +89,7 @@ def match_titles_to_files(
         else:
             music_files = [m for m in music_files if m != possible_tracks[0]]
 
+        _logger.debug(f"Mapping title {title} to track {possible_tracks[0]}")
         mapping.append((title, possible_tracks[0]))
 
     return mapping[::-1]
@@ -132,15 +122,21 @@ def add_metadata(
         mid3v2_command += f" -T \"{track_num}\""
 
     mid3v2_command += f" \"{mp3_file.resolve()}\""
+    _logger.debug(f"executing {mid3v2_command}")
     subprocess.run(mid3v2_command, shell=True, check=True)
 
 
+@plac.annotations(
+    mp3_file=plac.Annotation(
+        "mp3 file to inspect", type=pathlib.Path),
+)
 def show_metadata(mp3_file: pathlib.Path) -> None:
     """Show current metadata associated with given mp3 file."""
     if not mp3_file.resolve().is_file():
         raise FileNotFoundError(mp3_file.resolve())
 
     mid3v2_command = f"mid3v2 -l {mp3_file.resolve()}"
+    _logger.debug(f"executing {mid3v2_command}")
     subprocess.run(mid3v2_command, shell=True, check=True)
 
 
