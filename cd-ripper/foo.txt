@@ -1,2 +1,0 @@
-foo text
-foo text 2
