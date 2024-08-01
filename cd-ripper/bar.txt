@@ -1,2 +1,0 @@
-bar text
-bar line 2
